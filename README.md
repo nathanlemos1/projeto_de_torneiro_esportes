@@ -113,9 +113,9 @@ Essas funções removem todos os dados antigos e reinserem os atualizados direta
 
 ## ✅ Requisitos para Executar
 
-### `requirements.txt`
+```
+`requirements.txt`
 
-```txt
 ```
 ---
 
