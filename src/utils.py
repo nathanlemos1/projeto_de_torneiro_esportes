@@ -1,43 +1,43 @@
-# src/utils.py
+# utils.py
 
-import os
+def input_inteiro(msg, minimo=None, maximo=None):
+    """
+    Solicita ao usuário um número inteiro, com validação opcional de intervalo.
+    """
+    while True:
+        try:
+            valor = int(input(msg))
+            if (minimo is not None and valor < minimo) or (maximo is not None and valor > maximo):
+                print(f"Digite um número entre {minimo} e {maximo}.")
+            else:
+                return valor
+        except ValueError:
+            print("Entrada inválida! Digite um número inteiro.")
 
-def limpar_tela():
+
+def input_texto(msg, obrigatorio=True):
     """
-    Limpa o terminal, compatível com Windows e Unix.
+    Solicita ao usuário uma string de texto.
     """
-    os.system('cls' if os.name == 'nt' else 'clear')
+    while True:
+        texto = input(msg).strip()
+        if obrigatorio and texto == "":
+            print("Este campo é obrigatório.")
+        else:
+            return texto
 
 
 def pausar():
     """
-    Pausa a execução até que o usuário pressione Enter.
+    Pausa a execução até o usuário pressionar Enter.
     """
     input("\nPressione Enter para continuar...")
 
 
-def ler_inteiro(mensagem, minimo=None, maximo=None):
+def exibir_titulo(titulo):
     """
-    Lê um número inteiro com validação opcional de faixa.
+    Exibe um título formatado.
     """
-    while True:
-        try:
-            valor = int(input(mensagem))
-            if (minimo is not None and valor < minimo) or (maximo is not None and valor > maximo):
-                print(f"Por favor, insira um número entre {minimo} e {maximo}.")
-            else:
-                return valor
-        except ValueError:
-            print("Entrada inválida. Digite um número inteiro.")
-
-
-def ler_texto(mensagem, obrigatorio=True):
-    """
-    Lê um texto com a opção de exigir que não esteja vazio.
-    """
-    while True:
-        texto = input(mensagem).strip()
-        if obrigatorio and not texto:
-            print("Este campo é obrigatório.")
-        else:
-            return texto
+    print("\n" + "=" * len(titulo))
+    print(titulo.upper())
+    print("=" * len(titulo))

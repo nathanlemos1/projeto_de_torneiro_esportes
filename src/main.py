@@ -1,57 +1,63 @@
-# src/main.py
+# main.py
 
-import sys
-from db_manager import (
-    cadastrar_jogador,
-    listar_jogadores,
-    cadastrar_time,
-    listar_times,
-    cadastrar_jogo,
-    listar_jogos,
-    registrar_partida,
-    listar_partidas
-)
-from utils import limpar_tela, pausar
+from utils import input_inteiro, exibir_titulo, pausar
 
-def menu():
+def menu_principal():
     while True:
-        limpar_tela()
-        print("=== Sistema de Torneios de eSports ===\n")
-        print("1. Cadastrar jogador")
-        print("2. Listar jogadores")
-        print("3. Criar time")
-        print("4. Listar times")
-        print("5. Cadastrar jogo")
-        print("6. Listar jogos")
-        print("7. Registrar partida")
-        print("8. Listar partidas")
-        print("0. Sair\n")
+        exibir_titulo("Sistema de Torneios de eSports")
 
-        escolha = input("Escolha uma opção: ")
+        print("1. Gerenciar Jogadores")
+        print("2. Gerenciar Times")
+        print("3. Gerenciar Jogos")
+        print("4. Gerenciar Partidas")
+        print("0. Sair")
 
-        if escolha == "1":
-            cadastrar_jogador()
-        elif escolha == "2":
-            listar_jogadores()
-        elif escolha == "3":
-            cadastrar_time()
-        elif escolha == "4":
-            listar_times()
-        elif escolha == "5":
-            cadastrar_jogo()
-        elif escolha == "6":
-            listar_jogos()
-        elif escolha == "7":
-            registrar_partida()
-        elif escolha == "8":
-            listar_partidas()
-        elif escolha == "0":
-            print("Saindo...")
-            sys.exit(0)
-        else:
-            print("Opção inválida!")
+        opcao = input_inteiro("Escolha uma opção: ", minimo=0, maximo=4)
 
-        pausar()
+        if opcao == 1:
+            menu_jogadores()
+        elif opcao == 2:
+            menu_times()
+        elif opcao == 3:
+            menu_jogos()
+        elif opcao == 4:
+            menu_partidas()
+        elif opcao == 0:
+            print("Saindo do sistema...")
+            break
+
+
+def menu_jogadores():
+    exibir_titulo("Gerenciar Jogadores")
+    print("1. Cadastrar jogador")
+    print("2. Listar jogadores")
+    print("3. Voltar ao menu principal")
+    pausar()
+
+
+def menu_times():
+    exibir_titulo("Gerenciar Times")
+    print("1. Criar time")
+    print("2. Listar times")
+    print("3. Voltar ao menu principal")
+    pausar()
+
+
+def menu_jogos():
+    exibir_titulo("Gerenciar Jogos")
+    print("1. Cadastrar jogo")
+    print("2. Listar jogos")
+    print("3. Voltar ao menu principal")
+    pausar()
+
+
+def menu_partidas():
+    exibir_titulo("Gerenciar Partidas")
+    print("1. Registrar partida")
+    print("2. Listar partidas")
+    print("3. Voltar ao menu principal")
+    pausar()
+
 
 if __name__ == "__main__":
-    menu()
+    menu_principal()

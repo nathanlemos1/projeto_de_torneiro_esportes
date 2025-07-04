@@ -1,197 +1,183 @@
-# src/db_manager.py
-
 import sqlite3
-from utils import ler_texto, ler_inteiro
-from db_manager import cadastrar_jogador
+import os
 
-DB_PATH = "db/torneio.db"
-
+# ========== CONFIGURAÇÃO DO BANCO ==========
+DB_PATH = os.path.join("db", "torneio.db")
 
 def conectar():
     return sqlite3.connect(DB_PATH)
 
-
-# ----------------- Jogadores -----------------
-
-def cadastrar_jogador():
-    print("\n--- Cadastro de Jogador ---")
-    nome = ler_texto("Nome: ")
-    idade = ler_inteiro("Idade: ", minimo=0)
-    nickname = ler_texto("Nickname: ")
-
+def criar_tabelas():
+    os.makedirs("db", exist_ok=True)
     conn = conectar()
     cursor = conn.cursor()
 
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS jogador (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            idade INTEGER,
+            nickname TEXT UNIQUE
+        );
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS time (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL
+        );
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS jogador_time (
+            jogador_id INTEGER,
+            time_id INTEGER,
+            FOREIGN KEY (jogador_id) REFERENCES jogador(id),
+            FOREIGN KEY (time_id) REFERENCES time(id)
+        );
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS jogo (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            categoria TEXT
+        );
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS partida (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            time1_id INTEGER,
+            time2_id INTEGER,
+            jogo_id INTEGER,
+            data TEXT,
+            vencedor_id INTEGER,
+            FOREIGN KEY (time1_id) REFERENCES time(id),
+            FOREIGN KEY (time2_id) REFERENCES time(id),
+            FOREIGN KEY (jogo_id) REFERENCES jogo(id),
+            FOREIGN KEY (vencedor_id) REFERENCES time(id)
+        );
+    ''')
+
+    conn.commit()
+    conn.close()
+    print("Banco de dados inicializado com sucesso!")
+
+
+# ========== FUNÇÕES UTILITÁRIAS ==========
+
+def input_inteiro(msg, minimo=None, maximo=None):
+    while True:
+        try:
+            valor = int(input(msg))
+            if (minimo is not None and valor < minimo) or (maximo is not None and valor > maximo):
+                print(f"Digite um número entre {minimo} e {maximo}.")
+            else:
+                return valor
+        except ValueError:
+            print("Entrada inválida! Digite um número inteiro.")
+
+def input_texto(msg, obrigatorio=True):
+    while True:
+        texto = input(msg).strip()
+        if obrigatorio and texto == "":
+            print("Este campo é obrigatório.")
+        else:
+            return texto
+
+def pausar():
+    input("\nPressione Enter para continuar...")
+
+def exibir_titulo(titulo):
+    print("\n" + "=" * len(titulo))
+    print(titulo.upper())
+    print("=" * len(titulo))
+
+
+# ========== CRUD - Jogadores ==========
+
+def adicionar_jogador(nome, idade, nickname):
     try:
+        conn = conectar()
+        cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO jogador (nome, idade, nickname) VALUES (?, ?, ?)",
             (nome, idade, nickname)
         )
         conn.commit()
-        print("✅ Jogador cadastrado com sucesso!")
+        print("Jogador cadastrado com sucesso!")
     except sqlite3.IntegrityError:
-        print("❌ Nickname já existe!")
+        print("Erro: nickname já existe!")
+    except Exception as e:
+        print(f"Erro ao adicionar jogador: {e}")
     finally:
         conn.close()
 
-
 def listar_jogadores():
-    print("\n--- Lista de Jogadores ---")
-    conn = conectar()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT id, nome, idade, nickname FROM jogador")
-    jogadores = cursor.fetchall()
-
-    if not jogadores:
-        print("Nenhum jogador cadastrado.")
-    else:
-        for j in jogadores:
-            print(f"{j[0]} - {j[1]} ({j[2]} anos) - Nick: {j[3]}")
-
-    conn.close()
-
-
-# ----------------- Times -----------------
-
-def cadastrar_time():
-    print("\n--- Cadastro de Time ---")
-    nome = ler_texto("Nome do time: ")
-
-    conn = conectar()
-    cursor = conn.cursor()
-
-    cursor.execute("INSERT INTO time (nome) VALUES (?)", (nome,))
-    conn.commit()
-    time_id = cursor.lastrowid
-
-    print("Adicione jogadores ao time. (Digite 0 para sair)")
-
-    while True:
-        listar_jogadores()
-        jogador_id = ler_inteiro("ID do jogador para adicionar ao time (0 para encerrar): ")
-
-        if jogador_id == 0:
-            break
-
-        try:
-            cursor.execute(
-                "INSERT INTO jogador_time (jogador_id, time_id) VALUES (?, ?)",
-                (jogador_id, time_id)
-            )
-            conn.commit()
-            print("✅ Jogador adicionado.")
-        except sqlite3.IntegrityError:
-            print("❌ Este jogador já está neste time ou não existe.")
-
-    conn.close()
-
-
-def listar_times():
-    print("\n--- Lista de Times ---")
-    conn = conectar()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT id, nome FROM time")
-    times = cursor.fetchall()
-
-    for t in times:
-        print(f"\nTime {t[0]} - {t[1]}")
-        cursor.execute("""
-            SELECT j.nome, j.nickname 
-            FROM jogador j
-            JOIN jogador_time jt ON j.id = jt.jogador_id
-            WHERE jt.time_id = ?
-        """, (t[0],))
+    try:
+        conn = conectar()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, nome, idade, nickname FROM jogador")
         jogadores = cursor.fetchall()
 
         if jogadores:
+            print("\nLista de Jogadores:")
             for j in jogadores:
-                print(f"   - {j[0]} (Nick: {j[1]})")
+                print(f"ID: {j[0]} | Nome: {j[1]} | Idade: {j[2]} | Nickname: {j[3]}")
         else:
-            print("   (Sem jogadores)")
-
-    conn.close()
-
-
-# ----------------- Jogos -----------------
-
-def cadastrar_jogo():
-    print("\n--- Cadastro de Jogo ---")
-    nome = ler_texto("Nome do jogo: ")
-    categoria = ler_texto("Categoria (FPS, MOBA, etc): ")
-
-    conn = conectar()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO jogo (nome, categoria) VALUES (?, ?)", (nome, categoria))
-    conn.commit()
-    conn.close()
-    print("✅ Jogo cadastrado com sucesso!")
-
-
-def listar_jogos():
-    print("\n--- Lista de Jogos ---")
-    conn = conectar()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT id, nome, categoria FROM jogo")
-    jogos = cursor.fetchall()
-
-    for j in jogos:
-        print(f"{j[0]} - {j[1]} [{j[2]}]")
-
-    conn.close()
-
-
-# ----------------- Partidas -----------------
-
-def registrar_partida():
-    print("\n--- Registro de Partida ---")
-    listar_times()
-    time1_id = ler_inteiro("ID do Time 1: ")
-    time2_id = ler_inteiro("ID do Time 2: ")
-
-    if time1_id == time2_id:
-        print("❌ Os times não podem ser iguais.")
-        return
-
-    listar_jogos()
-    jogo_id = ler_inteiro("ID do jogo: ")
-    data = ler_texto("Data da partida (ex: 2025-07-04): ")
-    vencedor_id = ler_inteiro("ID do time vencedor: ")
-
-    conn = conectar()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute("""
-            INSERT INTO partida (time1_id, time2_id, jogo_id, data, vencedor_id)
-            VALUES (?, ?, ?, ?, ?)
-        """, (time1_id, time2_id, jogo_id, data, vencedor_id))
-        conn.commit()
-        print("✅ Partida registrada com sucesso!")
-    except sqlite3.IntegrityError:
-        print("❌ Erro ao registrar a partida. Verifique os IDs.")
+            print("Nenhum jogador cadastrado.")
+    except Exception as e:
+        print(f"Erro ao listar jogadores: {e}")
     finally:
         conn.close()
 
 
-def listar_partidas():
-    print("\n--- Lista de Partidas ---")
-    conn = conectar()
-    cursor = conn.cursor()
+# ========== MENUS ==========
 
-    cursor.execute("""
-        SELECT p.id, t1.nome, t2.nome, j.nome, p.data, tv.nome
-        FROM partida p
-        JOIN time t1 ON p.time1_id = t1.id
-        JOIN time t2 ON p.time2_id = t2.id
-        JOIN jogo j ON p.jogo_id = j.id
-        JOIN time tv ON p.vencedor_id = tv.id
-    """)
-    partidas = cursor.fetchall()
+def menu_jogadores():
+    while True:
+        exibir_titulo("Gerenciar Jogadores")
+        print("1. Cadastrar jogador")
+        print("2. Listar jogadores")
+        print("0. Voltar")
 
-    for p in partidas:
-        print(f"#{p[0]} - {p[1]} vs {p[2]} | Jogo: {p[3]} | Data: {p[4]} | Vencedor: {p[5]}")
+        opcao = input_inteiro("Escolha uma opção: ", 0, 2)
 
-    conn.close()
+        if opcao == 1:
+            nome = input_texto("Nome: ")
+            idade = input_inteiro("Idade: ")
+            nickname = input_texto("Nickname: ")
+            adicionar_jogador(nome, idade, nickname)
+            pausar()
+        elif opcao == 2:
+            listar_jogadores()
+            pausar()
+        elif opcao == 0:
+            break
+
+def menu_principal():
+    while True:
+        exibir_titulo("Sistema de Torneios de eSports")
+        print("1. Gerenciar Jogadores")
+        print("2. Gerenciar Times (em breve)")
+        print("3. Gerenciar Jogos (em breve)")
+        print("4. Gerenciar Partidas (em breve)")
+        print("0. Sair")
+
+        opcao = input_inteiro("Escolha uma opção: ", 0, 4)
+
+        if opcao == 1:
+            menu_jogadores()
+        elif opcao == 0:
+            print("Saindo do sistema...")
+            break
+        else:
+            print("Funcionalidade ainda não implementada.")
+            pausar()
+
+
+# ========== EXECUÇÃO ==========
+if __name__ == "__main__":
+    criar_tabelas()
+    menu_principal()
