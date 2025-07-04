@@ -116,6 +116,5 @@ Essas funções removem todos os dados antigos e reinserem os atualizados direta
 ### `requirements.txt`
 
 ```txt
-tk
 
 ### Autor: Nathan Lemos
