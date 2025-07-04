@@ -116,5 +116,7 @@ Essas funções removem todos os dados antigos e reinserem os atualizados direta
 ### `requirements.txt`
 
 ```txt
+```
+---
 
 ### Autor: Nathan Lemos
