@@ -119,4 +119,4 @@ Essas funções removem todos os dados antigos e reinserem os atualizados direta
 ```
 ---
 
-### Autor: Nathan Lemos
+### Autores: Nathan Lemos, Nicolas Moreira, Bryan Eduardo
