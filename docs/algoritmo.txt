@@ -1,0 +1,42 @@
+
+📜 ALGORITMO DE RELACIONAMENTO DO SISTEMA DE TORNEIOS DE ESPORTS
+
+INÍCIO
+
+1. Inicializar banco de dados e criar as tabelas:
+   - jogador
+   - time
+   - jogador_time
+   - jogo
+   - partida
+
+2. Cadastro de jogador:
+   - Solicitar nome, idade e nickname
+   - Verificar se nickname já existe
+   - Inserir jogador na tabela jogador
+
+3. Cadastro de time:
+   - Solicitar nome do time
+   - Inserir time na tabela time
+
+4. Vincular jogador a time:
+   - Solicitar IDs de jogador e time
+   - Inserir na tabela jogador_time (relacionamento N:N)
+
+5. Cadastro de jogo:
+   - Solicitar nome do jogo e categoria
+   - Inserir na tabela jogo
+
+6. Registrar partida:
+   - Solicitar IDs de time1, time2, jogo, data e vencedor
+   - Inserir na tabela partida com as chaves estrangeiras apropriadas
+
+7. Listagens:
+   - Jogadores → SELECT * FROM jogador
+   - Times → SELECT * FROM time
+   - Jogos → SELECT * FROM jogo
+   - Partidas → SELECT * FROM partida
+
+8. Fim do programa quando o usuário escolher sair
+
+FIM
